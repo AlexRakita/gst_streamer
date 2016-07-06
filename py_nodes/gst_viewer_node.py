@@ -7,29 +7,29 @@ import std_msgs.msg
 
 import gst_engines
 
-DEFAULT_PIPELINE_STRING = gst_engines.DEFAULT_STREAMER_PIPELINE
-DEFAULT_HOST = gst_engines.DEFAULT_HOST
+DEFAULT_PIPELINE_STRING = gst_engines.DEFAULT_VIEWER_PIPELINE
 DEFAULT_PORT = gst_engines.DEFAULT_PORT
 DEFAULT_AUTO_RESTART = True
 
 
-class GstStreamerNode(object):
+class GstViewerNode(object):
     """
-    A ROS node class handling the generation and streaming of multimedia
-    data.
+    A ROS node class handling the reception of multimedia data and
+    viewing it.
     """
 
     def __init__(self):
-        """GStreamer multimedia streamer ROS node class"""
+        """GStreamer multimedia viewer ROS node"""
 
-        rospy.init_node('gst_streamer')
+        rospy.init_node('gst_dispatcher')
 
         self._is_playing_publisher = None
+        self._image_publisher = None
 
-        host = rospy.get_param(
-            '/gst_streamer_node/host_ip', DEFAULT_HOST)
         port = rospy.get_param(
             '/gst_streamer_node/port', DEFAULT_PORT)
+        source_override = rospy.get_param(
+            '/gst_streamer_node/source_override', None)
         sink_override = rospy.get_param(
             '/gst_streamer_node/sink_override', None)
         pipeline_string = rospy.get_param(
@@ -37,15 +37,14 @@ class GstStreamerNode(object):
         auto_restart = rospy.get_param(
             '/gst_streamer_node/auto_restart', DEFAULT_AUTO_RESTART)
 
-        self._init_publishers()
+        gst_engines.GstViewer._notify = self._ros_log
 
-        gst_engines.GstStreamer._notify = self._ros_log
-
-        self._engine = gst_engines.GstStreamer(
-            pipeline_string, host, port, sink_override)
+        self._engine = gst_engines.GstViewer(
+            pipeline_string, port, source_override, sink_override)
 
         self._is_auto_restart = auto_restart
 
+        self._init_publishers()
         self.start_engine()
         self.spin_loop()
 
@@ -61,7 +60,6 @@ class GstStreamerNode(object):
 
     def spin_loop(self):
         """The main spin loop"""
-
         rospy.loginfo('Starting main loop')
         rate = rospy.Rate(10)
         while not rospy.is_shutdown():
@@ -77,7 +75,7 @@ class GstStreamerNode(object):
     def _init_publishers(self):
         """Initialize the publishers"""
         self._is_playing_publisher = rospy.Publisher(
-            'gst_streamer_is_playing', std_msgs.msg.Bool, queue_size=1)
+            'gst_viewer_is_playing', std_msgs.msg.Bool, queue_size=1)
 
     def _ros_log(self, severity, msg):
         """Log event messages"""
@@ -94,5 +92,6 @@ class GstStreamerNode(object):
         else:
             raise NotImplementedError('Unsupported severity')
 
+
 if __name__ == '__main__':
-    gst_streamer_node = GstStreamerNode()
+    gst_viewer_node = GstViewerNode()

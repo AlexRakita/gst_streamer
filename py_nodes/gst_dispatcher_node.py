@@ -2,51 +2,55 @@
 
 from __future__ import print_function
 
+import numpy
+
 import rospy
 import std_msgs.msg
+import sensor_msgs.msg
+import cv_bridge
 
 import gst_engines
 
-DEFAULT_PIPELINE_STRING = gst_engines.DEFAULT_STREAMER_PIPELINE
-DEFAULT_HOST = gst_engines.DEFAULT_HOST
+DEFAULT_PIPELINE_STRING = gst_engines.DEFAULT_DISPATCHER_PIPELINE
 DEFAULT_PORT = gst_engines.DEFAULT_PORT
 DEFAULT_AUTO_RESTART = True
 
 
-class GstStreamerNode(object):
+class GstDispatcherNode(object):
     """
-    A ROS node class handling the generation and streaming of multimedia
-    data.
+    A ROS node class handling the reception of multimedia data and
+    redistributing it as sensor_msgs/Image ROS messages.
     """
 
     def __init__(self):
-        """GStreamer multimedia streamer ROS node class"""
+        """GStreamer multimedia dispatcher ROS node class"""
 
-        rospy.init_node('gst_streamer')
+        rospy.init_node('gst_dispatcher')
 
         self._is_playing_publisher = None
+        self._image_publisher = None
 
-        host = rospy.get_param(
-            '/gst_streamer_node/host_ip', DEFAULT_HOST)
         port = rospy.get_param(
             '/gst_streamer_node/port', DEFAULT_PORT)
-        sink_override = rospy.get_param(
-            '/gst_streamer_node/sink_override', None)
+        source_override = rospy.get_param(
+            '/gst_streamer_node/source_override', None)
         pipeline_string = rospy.get_param(
             '/gst_streamer_node/pipeline_string', DEFAULT_PIPELINE_STRING)
         auto_restart = rospy.get_param(
             '/gst_streamer_node/auto_restart', DEFAULT_AUTO_RESTART)
 
-        self._init_publishers()
+        gst_engines.GstDispatcher._notify = self._ros_log
 
-        gst_engines.GstStreamer._notify = self._ros_log
-
-        self._engine = gst_engines.GstStreamer(
-            pipeline_string, host, port, sink_override)
+        self._engine = gst_engines.GstDispatcher(
+            pipeline_string, port, source_override)
+        self._engine.register_callback(self._on_new_image)
+        self._cv_bridge = cv_bridge.CvBridge()
 
         self._is_auto_restart = auto_restart
 
+        self._init_publishers()
         self.start_engine()
+
         self.spin_loop()
 
     def start_engine(self):
@@ -61,7 +65,6 @@ class GstStreamerNode(object):
 
     def spin_loop(self):
         """The main spin loop"""
-
         rospy.loginfo('Starting main loop')
         rate = rospy.Rate(10)
         while not rospy.is_shutdown():
@@ -74,10 +77,18 @@ class GstStreamerNode(object):
         if self._engine.is_playing:
             self.stop_engine()
 
+    def _on_new_image(self, img_data):
+        """Callback on image reception"""
+        img = gst_to_opencv(img_data)
+        msg = self._cv_bridge.cv2_to_imgmsg(img, encoding='rgb8')
+        self._image_publisher.publish(msg)
+
     def _init_publishers(self):
         """Initialize the publishers"""
         self._is_playing_publisher = rospy.Publisher(
-            'gst_streamer_is_playing', std_msgs.msg.Bool, queue_size=1)
+            'gst_dispatcher_is_playing', std_msgs.msg.Bool, queue_size=1)
+        self._image_publisher = rospy.Publisher(
+            'video', sensor_msgs.msg.Image, queue_size=1)
 
     def _ros_log(self, severity, msg):
         """Log event messages"""
@@ -94,5 +105,12 @@ class GstStreamerNode(object):
         else:
             raise NotImplementedError('Unsupported severity')
 
+
+def gst_to_opencv(img_data):
+    arr = numpy.ndarray((img_data['height'], img_data['width'], 3),
+                        buffer=img_data['buffer'], dtype=numpy.uint8)
+    return arr
+
+
 if __name__ == '__main__':
-    gst_streamer_node = GstStreamerNode()
+    gst_dispatcher_node = GstDispatcherNode()
