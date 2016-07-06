@@ -21,7 +21,7 @@ class GstViewerNode(object):
     def __init__(self):
         """GStreamer multimedia viewer ROS node"""
 
-        rospy.init_node('gst_dispatcher')
+        rospy.init_node('gst_viewer')
 
         self._is_playing_publisher = None
         self._image_publisher = None
