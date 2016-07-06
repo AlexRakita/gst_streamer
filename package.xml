@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>gst_streamer</name>
-  <version>0.0.1</version>
+  <version>0.1.0</version>
   <description>A GStreamer wrapper package, intendent mainly for streaming real-time video over the network.</description>
 
   <maintainer email="gno.sun.sop@gmail.com">Alex Rakita</maintainer>
