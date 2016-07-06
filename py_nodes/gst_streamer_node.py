@@ -26,16 +26,16 @@ class GstStreamerNode(object):
 
         self._is_playing_publisher = None
 
-        host = rospy.get_param(
-            '/gst_streamer_node/host_ip', DEFAULT_HOST)
-        port = rospy.get_param(
-            '/gst_streamer_node/port', DEFAULT_PORT)
+        host = str(rospy.get_param(
+            '~host', DEFAULT_HOST))
+        port = str(rospy.get_param(
+            '~port', DEFAULT_PORT))
         sink_override = rospy.get_param(
-            '/gst_streamer_node/sink_override', None)
+            '~sink_override', None)
         pipeline_string = rospy.get_param(
-            '/gst_streamer_node/pipeline_string', DEFAULT_PIPELINE_STRING)
+            '~pipeline_string', DEFAULT_PIPELINE_STRING)
         auto_restart = rospy.get_param(
-            '/gst_streamer_node/auto_restart', DEFAULT_AUTO_RESTART)
+            '~auto_restart', DEFAULT_AUTO_RESTART)
 
         self._init_publishers()
 
@@ -81,18 +81,12 @@ class GstStreamerNode(object):
 
     def _ros_log(self, severity, msg):
         """Log event messages"""
-        if severity == 'fatal':
-            rospy.logfatal(msg)
-        elif severity == 'err':
-            rospy.logerr(msg)
-        elif severity == 'warn':
-            rospy.logwarn(msg)
-        elif severity == 'info':
-            rospy.loginfo(msg)
-        elif severity == 'debug':
-            rospy.logdebug(msg)
-        else:
-            raise NotImplementedError('Unsupported severity')
+        if severity == 'fatal': rospy.logfatal(msg)
+        elif severity == 'err': rospy.logerr(msg)
+        elif severity == 'warn': rospy.logwarn(msg)
+        elif severity == 'info': rospy.loginfo(msg)
+        elif severity == 'debug': rospy.logdebug(msg)
+        else: raise NotImplementedError('Unsupported severity')
 
 if __name__ == '__main__':
     gst_streamer_node = GstStreamerNode()

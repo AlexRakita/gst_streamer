@@ -128,7 +128,7 @@ class GstBase(object):
     def _handle_bus_msg(self):
         """Method handling bus messages"""
         while self._bus_handler_active:
-            msg = self._msg_bus.timed_pop_filtered(1000000, Gst.MessageType.ANY)
+            msg = self._msg_bus.timed_pop_filtered(10000, Gst.MessageType.ANY)
             if msg is not None:
                 self._notify('debug', 'Bus message: %s' % (msg.type, ))
                 for msg_type, callback in self._registered_bus_callbacks:
