@@ -30,14 +30,14 @@ class GstDispatcherNode(object):
         self._is_playing_publisher = None
         self._image_publisher = None
 
-        port = rospy.get_param(
-            '/gst_streamer_node/port', DEFAULT_PORT)
+        port = str(rospy.get_param(
+            '~port', DEFAULT_PORT))
         source_override = rospy.get_param(
-            '/gst_streamer_node/source_override', None)
+            '~source_override', None)
         pipeline_string = rospy.get_param(
-            '/gst_streamer_node/pipeline_string', DEFAULT_PIPELINE_STRING)
+            '~pipeline_string', DEFAULT_PIPELINE_STRING)
         auto_restart = rospy.get_param(
-            '/gst_streamer_node/auto_restart', DEFAULT_AUTO_RESTART)
+            '~auto_restart', DEFAULT_AUTO_RESTART)
 
         gst_engines.GstDispatcher._notify = self._ros_log
 
@@ -80,7 +80,7 @@ class GstDispatcherNode(object):
     def _on_new_image(self, img_data):
         """Callback on image reception"""
         img = gst_to_opencv(img_data)
-        msg = self._cv_bridge.cv2_to_imgmsg(img, encoding='rgb8')
+        msg = self._cv_bridge.cv2_to_imgmsg(img, encoding='bgr8')
         self._image_publisher.publish(msg)
 
     def _init_publishers(self):
