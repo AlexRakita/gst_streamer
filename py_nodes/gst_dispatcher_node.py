@@ -92,18 +92,12 @@ class GstDispatcherNode(object):
 
     def _ros_log(self, severity, msg):
         """Log event messages"""
-        if severity == 'fatal':
-            rospy.logfatal(msg)
-        elif severity == 'err':
-            rospy.logerr(msg)
-        elif severity == 'warn':
-            rospy.logwarn(msg)
-        elif severity == 'info':
-            rospy.loginfo(msg)
-        elif severity == 'debug':
-            rospy.logdebug(msg)
-        else:
-            raise NotImplementedError('Unsupported severity')
+        if severity == 'fatal': rospy.logfatal(msg)
+        elif severity == 'err': rospy.logerr(msg)
+        elif severity == 'warn': rospy.logwarn(msg)
+        elif severity == 'info': rospy.loginfo(msg)
+        elif severity == 'debug': rospy.logdebug(msg)
+        else: raise NotImplementedError('Unsupported severity')
 
 
 def gst_to_opencv(img_data):

@@ -27,7 +27,7 @@ class GstStreamerNode(object):
         self._is_playing_publisher = None
 
         host = rospy.get_param(
-            '/gst_streamer_node/host_ip', DEFAULT_HOST)
+            '/gst_streamer_node/host', DEFAULT_HOST)
         port = rospy.get_param(
             '/gst_streamer_node/port', DEFAULT_PORT)
         sink_override = rospy.get_param(
@@ -81,18 +81,12 @@ class GstStreamerNode(object):
 
     def _ros_log(self, severity, msg):
         """Log event messages"""
-        if severity == 'fatal':
-            rospy.logfatal(msg)
-        elif severity == 'err':
-            rospy.logerr(msg)
-        elif severity == 'warn':
-            rospy.logwarn(msg)
-        elif severity == 'info':
-            rospy.loginfo(msg)
-        elif severity == 'debug':
-            rospy.logdebug(msg)
-        else:
-            raise NotImplementedError('Unsupported severity')
+        if severity == 'fatal': rospy.logfatal(msg)
+        elif severity == 'err': rospy.logerr(msg)
+        elif severity == 'warn': rospy.logwarn(msg)
+        elif severity == 'info': rospy.loginfo(msg)
+        elif severity == 'debug': rospy.logdebug(msg)
+        else: raise NotImplementedError('Unsupported severity')
 
 if __name__ == '__main__':
     gst_streamer_node = GstStreamerNode()
